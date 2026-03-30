@@ -14,7 +14,7 @@ class AuthController extends Controller
     public function register (Request $request)
     {
         $validator =Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|between:10,100',
             'email' => 'required|string|email|min:10|max:100|unique:users',
             'password' => 'required|string|min:8|max:50|confirmed',
         ]);
@@ -52,7 +52,7 @@ class AuthController extends Controller
                 return response()->json(['error' => 'Invalid credentials'], 401);
             }
 
-            return response()->json(['token' => $token], 200);
+            return response()->json(['token' => $token, 'token_type' => 'bearer', 'expires_in' => JWTAuth::factory()->getTTL() * 60], 200);
         } catch (JWTException $e) {
             return response()->json(['error' => 'Could not create token', $e], 500);
         }
@@ -66,8 +66,21 @@ class AuthController extends Controller
 
     public function logout()
     {
-        JWTAuth::invalidate(JWTAuth::getToken());
+        try {
+            JWTAuth::invalidate(JWTAuth::getToken());
+            return response()->json(['message' => 'Successfully logged out']);
+        } catch (JWTException $e) {
+            return response()->json(['error' => 'Failed to logout'], 500);
+        }
+    }
 
-        return response()->json(['message' => 'Successfully logged out'], 200);
+    public function refresh()
+    {
+        try {
+            $newToken = JWTAuth::refresh(JWTAuth::getToken());
+            return response()->json(['token' => $newToken], 200);
+        } catch (JWTException $e) {
+            return response()->json(['error' => 'Could not refresh token', $e], 500);
+        }
     }
 }
