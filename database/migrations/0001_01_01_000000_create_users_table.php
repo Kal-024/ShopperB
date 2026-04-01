@@ -15,9 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('role',20);
+            $table->string('phone',20)->nullable();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->decimal('rating_avg', 3, 2)->default(0);
+            $table->string('status',20)->default('active');
             $table->rememberToken();
             $table->timestamps();
         });
